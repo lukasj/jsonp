@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2021 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -31,9 +31,6 @@ import jakarta.json.*;
 public class JsonObjectTest extends TestCase {
     public JsonObjectTest(String testName) {
         super(testName);
-    }
-
-    public void test() {
     }
 
     public void testEmptyObjectEquals() throws Exception {
