@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2021 Oracle and/or its affiliates. All rights reserved.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0, which is available at
@@ -226,7 +226,7 @@ final class JsonTokenizer implements Closeable {
         if (ch == '-') {
             this.minus = true;
             ch = readNumberChar();
-            if (ch < '0' || ch >'9') {
+            if (!Character.isDigit(ch)) {
                 throw unexpectedChar(ch);
             }
         }
@@ -237,7 +237,7 @@ final class JsonTokenizer implements Closeable {
         } else {
             do {
                 ch = readNumberChar();
-            } while (ch >= '0' && ch <= '9');
+            } while (Character.isDigit(ch));
         }
 
         // frac
@@ -247,7 +247,7 @@ final class JsonTokenizer implements Closeable {
             do {
                 ch = readNumberChar();
                 count++;
-            } while (ch >= '0' && ch <= '9');
+            } while (Character.isDigit(ch));
             if (count == 1) {
                 throw unexpectedChar(ch);
             }
@@ -261,7 +261,7 @@ final class JsonTokenizer implements Closeable {
                 ch = readNumberChar();
             }
             int count;
-            for (count = 0; ch >= '0' && ch <= '9'; count++) {
+            for (count = 0; Character.isDigit(ch); count++) {
                 ch = readNumberChar();
             }
             if (count == 0) {
@@ -276,6 +276,18 @@ final class JsonTokenizer implements Closeable {
     }
 
     private void readTrue() {
+        int rb = readBegin;
+        char[] b = buf;
+        if (rb + 3 < readEnd) {
+            if (b[rb++] == 'r' && b[rb++] == 'u' && b[rb++] == 'e') {
+                readBegin = rb;
+                return;
+            }
+            int i = rb - 1;
+            char exp = new char[]{'r', 'u', 'e'}[i - readBegin];
+            readBegin = rb;
+            throw expectedChar(b[i], exp);
+        }
         int ch1 = read();
         if (ch1 != 'r') {
             throw expectedChar(ch1, 'r');
@@ -291,6 +303,18 @@ final class JsonTokenizer implements Closeable {
     }
 
     private void readFalse() {
+        int rb = readBegin;
+        char[] b = buf;
+        if (rb + 4 < readEnd) {
+            if (b[rb++] == 'a' && b[rb++] == 'l' && b[rb++] == 's' && b[rb++] == 'e') {
+                readBegin = rb;
+                return;
+            }
+            int i = rb - 1;
+            char exp = new char[]{'a', 'l', 's', 'e'}[i - readBegin];
+            readBegin = rb;
+            throw expectedChar(b[i], exp);
+        }
         int ch1 = read();
         if (ch1 != 'a') {
             throw expectedChar(ch1, 'a');
@@ -310,6 +334,18 @@ final class JsonTokenizer implements Closeable {
     }
 
     private void readNull() {
+        int rb = readBegin;
+        char[] b = buf;
+        if (rb + 3 < readEnd) {
+            if (b[rb++] == 'u' && b[rb++] == 'l' && b[rb++] == 'l') {
+                readBegin = rb;
+                return;
+            }
+            int i = rb - 1;
+            char exp =  new char[]{'u', 'l', 'l'}[i - readBegin];
+            readBegin = rb;
+            throw expectedChar(b[i],exp);
+        }
         int ch1 = read();
         if (ch1 != 'u') {
             throw expectedChar(ch1, 'u');
@@ -432,7 +468,7 @@ final class JsonTokenizer implements Closeable {
                 readBegin = storeEnd;
                 readEnd = readBegin+len;
             }
-            return buf[readBegin];
+            return buf[readBegin] & 0xff;
         } catch (IOException ioe) {
             throw new JsonException(JsonMessages.TOKENIZER_IO_ERR(), ioe);
         }
